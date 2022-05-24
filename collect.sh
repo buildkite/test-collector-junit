@@ -42,7 +42,6 @@ else
 
     JQ_BINARY_DOWNLOAD_URL="https://github.com/stedolan/jq/releases/download/jq-1.6/jq-$JQ_PLATFORM"
     JQ_DOWNLOAD_OUTPUT_TMP_FILE="/tmp/bk-collector-junit-jq-download-$$.txt"
-    JQ_DOWNLOAD_EXIT_STATUS
 
     # Make sure the folder actually exists
     mkdir -p "$JQ_FOLDER"
