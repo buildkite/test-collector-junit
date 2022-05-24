@@ -112,7 +112,9 @@ fi
 JUNIT_DATA_PATH="/tmp/bk-collector-junit-data-$$.xml"
 cat ${1--} > $JUNIT_DATA_PATH
 
-JSON_BODY=$($JQ_PATH --null-input \
+JSON_PATH="/tmp/bk-collector-junit-upload-data-$$.json"
+
+$JQ_PATH --null-input \
   --arg ci "$COLLECTOR_CI" \
   --arg key "$COLLECTOR_KEY" \
   --arg number "$COLLECTOR_NUMBER" \
@@ -143,7 +145,7 @@ JSON_BODY=$($JQ_PATH --null-input \
       },
       "data": $data
     }
-  ')
+  ' > $JSON_PATH
 
 TEST_ANALYTICS_HTTP_URL="https://analytics-api.buildkite.com/v1/uploads"
 TEST_ANALYTICS_HTTP_AUTH='Authorization: Token token="'$TEST_ANALYTICS_TOKEN'";'
@@ -161,7 +163,7 @@ if command -v curl >/dev/null; then
     --url "$TEST_ANALYTICS_HTTP_URL" \
     --header "$TEST_ANALYTICS_HTTP_AUTH" \
     --header 'Content-Type: application/json' \
-    --data "$JSON_BODY"
+    --data "@$JSON_PATH"
   UPLOAD_EXIT_STATUS=$?
 else
   echo "wget support hasn't been added for uploads yet"
