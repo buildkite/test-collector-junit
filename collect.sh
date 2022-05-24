@@ -2,6 +2,9 @@
 
 set -e
 
+COLLECTOR_NAME="collector-junit"
+COLLECTOR_VERSION="0.1"
+
 function echo-debug {
   if [[ "$BUILDKITE_ANALYTICS_DEBUG_ENABLED" == "true" ]]; then
     echo $1
@@ -94,6 +97,9 @@ JSON_BODY=$($JQ_PATH --null-input \
   --arg commit_sha "$COLLECTOR_COMMIT_SHA" \
   --arg message "$COLLECTOR_MESSAGE" \
   --arg url "$COLLECTOR_URL" \
+  --arg debug "$BUILDKITE_ANALYTICS_DEBUG_ENABLED" \
+  --arg collector_name "$COLLECTOR_NAME" \
+  --arg collector_version "$COLLECTOR_VERSION" \
   --arg data "$COLLECTOR_JUNIT_DATA" \
   '
     {
@@ -106,7 +112,10 @@ JSON_BODY=$($JQ_PATH --null-input \
         "branch": $branch,
         "commit_sha": $commit_sha,
         "message": $message,
-        "url": $url
+        "url": $url,
+        "debug": $debug,
+        "collector": $collector_name,
+        "version": $collector_version
       },
       "data": $data
     }
