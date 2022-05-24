@@ -109,7 +109,8 @@ else
   COLLECTOR_KEY="$$"
 fi
 
-COLLECTOR_JUNIT_DATA=$(cat ${1--})
+JUNIT_DATA_PATH="/tmp/bk-collector-junit-data-$$.xml"
+cat ${1--} > $JUNIT_DATA_PATH
 
 JSON_BODY=$($JQ_PATH --null-input \
   --arg ci "$COLLECTOR_CI" \
@@ -123,7 +124,7 @@ JSON_BODY=$($JQ_PATH --null-input \
   --arg debug "$BUILDKITE_ANALYTICS_DEBUG_ENABLED" \
   --arg collector_name "$COLLECTOR_NAME" \
   --arg collector_version "$COLLECTOR_VERSION" \
-  --arg data "$COLLECTOR_JUNIT_DATA" \
+  --rawfile data "$JUNIT_DATA_PATH" \
   '
     {
       "format": "junit",
@@ -172,6 +173,7 @@ if [[ $UPLOAD_EXIT_STATUS -ne 0 ]]; then
   echo "output"
   cat "$UPLOAD_RESPONSE"
 else
+  cat "$UPLOAD_RESPONSE"
   echo ""
   echo "✅ Uploaded!"
 fi
