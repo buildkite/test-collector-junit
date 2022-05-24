@@ -55,8 +55,8 @@ else
 
     if [[ $JQ_DOWNLOAD_EXIT_STATUS -ne 0 ]]; then
       echo "Failed to download file: $JQ_BINARY_DOWNLOAD_URL"
-      cat $BUILDKITE_DOWNLOAD_TMP_FILE
-      exit $BUILDKITE_DOWNLOAD_EXIT_STATUS
+      cat $JQ_DOWNLOAD_OUTPUT_TMP_FILE
+      exit $JQ_DOWNLOAD_EXIT_STATUS
     fi
 
     # Ensure we can run the file
@@ -144,8 +144,6 @@ JSON_BODY=$($JQ_PATH --null-input \
     }
   ')
 
-echo-debug "$JSON_BODY"
-
 TEST_ANALYTICS_HTTP_URL="https://analytics-api.buildkite.com/v1/uploads"
 TEST_ANALYTICS_HTTP_AUTH='Authorization: Token token="'$TEST_ANALYTICS_TOKEN'";'
 
@@ -173,5 +171,4 @@ if [[ $UPLOAD_EXIT_STATUS -ne 0 ]]; then
   cat "$UPLOAD_COMMAND_OUTPUT_TMP_FILE"
   echo "output"
   cat "$UPLOAD_RESPONSE"
-  # echo-error "blah"
 fi
