@@ -153,6 +153,7 @@ UPLOAD_COMMAND_OUTPUT_TMP_FILE="/tmp/bk-collector-junit-upload-cmd-output-$$.txt
 
 echo ""
 echo "Uploading results to Buildkite Test Analytics. One moment please..."
+echo ""
 
 if command -v curl >/dev/null; then
   curl --output "$UPLOAD_RESPONSE" \
@@ -160,20 +161,19 @@ if command -v curl >/dev/null; then
     --url "$TEST_ANALYTICS_HTTP_URL" \
     --header "$TEST_ANALYTICS_HTTP_AUTH" \
     --header 'Content-Type: application/json' \
-    --data "$JSON_BODY" 2> "$UPLOAD_COMMAND_OUTPUT_TMP_FILE"
+    --data "$JSON_BODY"
   UPLOAD_EXIT_STATUS=$?
 else
   echo "wget support hasn't been added for uploads yet"
   exit 1
 fi
 
+echo ""
+cat "$UPLOAD_RESPONSE"
+echo ""
+
 if [[ $UPLOAD_EXIT_STATUS -ne 0 ]]; then
-  echo "blah"
-  cat "$UPLOAD_COMMAND_OUTPUT_TMP_FILE"
-  echo "output"
-  cat "$UPLOAD_RESPONSE"
+  echo "❌ Something went wrong..."
 else
-  cat "$UPLOAD_RESPONSE"
-  echo ""
   echo "✅ Uploaded!"
 fi
