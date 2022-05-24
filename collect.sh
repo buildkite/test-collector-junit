@@ -5,21 +5,21 @@ set -e
 COLLECTOR_NAME="collector-junit"
 COLLECTOR_VERSION="0.1"
 
-function echo-debug {
-  if [[ "$BUILDKITE_ANALYTICS_DEBUG_ENABLED" == "true" ]]; then
-    echo $1
-  fi
-}
+echo -e "\033[33m     _ _   _       _ _      ____      _ _           _
+    | | | | |_ __ (_| |_   / ___|___ | | | ___  ___| |_ ___  _ __
+ _  | | | | | '_ \| | __| | |   / _ \| | |/ _ \/ __| __/ _ \| '__|
+| |_| | |_| | | | | | |_  | |__| (_) | | |  __| (__| || (_) | |
+ \___/ \___/|_| |_|_|\__|  \____\___/|_|_|\___|\___|\__\___/|_|
 
-function echo-error {
-  echo $1
-}
+Buildkite Test Analytics: JUnit Collector
+Version: $COLLECTOR_VERSION
+\033[0m"
 
 # Check to see if we've got jq installed already
 if command -v jq >/dev/null; then
   JQ_PATH=$(which jq)
 
-  echo-debug "using system jq"
+  echo "Detected jq installed in \$PATH"
 else
   # Figure out where we're going to put the binary after we download it
   JQ_FOLDER="$HOME/.bk-collector-junit"
@@ -62,7 +62,7 @@ else
     # Ensure we can run the file
     chmod +x $JQ_PATH
   else
-    echo-debug "Skipping jq download as it already exists at \"$JQ_PATH\""
+    echo "Skipping jq download as it already exists at \"$JQ_PATH\""
   fi
 fi
 
@@ -70,7 +70,7 @@ fi
 # https://github.com/buildkite/rspec-buildkite-analytics/blob/main/lib/buildkite/collector/ci.rb
 
 if [[ -n $BUILDKITE_BUILD_ID ]]; then
-  echo-debug "Deteted Buildkite CI environment"
+  echo "Deteted Buildkite CI environment"
 
   COLLECTOR_CI="buildkite"
   COLLECTOR_KEY=$BUILDKITE_BUILD_ID
@@ -81,7 +81,7 @@ if [[ -n $BUILDKITE_BUILD_ID ]]; then
   COLLECTOR_MESSAGE=$BUILDKITE_MESSAGE
   COLLECTOR_URL=$BUILDKITE_BUILD_URL
 elif [[ -n $GITHUB_RUN_NUMBER ]]; then
-  echo-debug "Deteted GitHub Actions CI environment"
+  echo "Deteted GitHub Actions CI environment"
 
   COLLECTOR_CI="github_actions"
   COLLECTOR_KEY="$GITHUB_ACTION-$GITHUB_RUN_NUMBER-$GITHUB_RUN_ATTEMPT"
@@ -90,7 +90,7 @@ elif [[ -n $GITHUB_RUN_NUMBER ]]; then
   COLLECTOR_COMMIT_SHA=$GITHUB_SHA
   COLLECTOR_URL="https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
 elif [[ -n $CIRCLE_BUILD_NUM ]]; then
-  echo-debug "Deteted CircleCI environment"
+  echo "Deteted CircleCI environment"
 
   COLLECTOR_CI="circleci"
   COLLECTOR_KEY="$CIRCLE_WORKFLOW_ID-$CIRCLE_BUILD_NUM"
@@ -99,12 +99,12 @@ elif [[ -n $CIRCLE_BUILD_NUM ]]; then
   COLLECTOR_COMMIT_SHA=$CIRCLE_SHA1
   COLLECTOR_URL=$CIRCLE_BUILD_URL
 elif [[ -n $CI ]]; then
-  echo-debug "Deteted generic CI environment"
+  echo "Deteted generic CI environment"
 
   COLLECTOR_CI="generic"
   COLLECTOR_KEY="$$"
 else
-  echo-debug "No CI environment detected"
+  echo "No CI environment detected"
 
   COLLECTOR_KEY="$$"
 fi
@@ -150,6 +150,9 @@ TEST_ANALYTICS_HTTP_AUTH='Authorization: Token token="'$TEST_ANALYTICS_TOKEN'";'
 UPLOAD_RESPONSE="/tmp/bk-collector-junit-upload-response-$$.txt"
 UPLOAD_COMMAND_OUTPUT_TMP_FILE="/tmp/bk-collector-junit-upload-cmd-output-$$.txt"
 
+echo ""
+echo "Uploading results to Buildkite Test Analytics. One moment please..."
+
 if command -v curl >/dev/null; then
   curl --output "$UPLOAD_RESPONSE" \
     --request POST \
@@ -159,16 +162,16 @@ if command -v curl >/dev/null; then
     --data "$JSON_BODY" 2> "$UPLOAD_COMMAND_OUTPUT_TMP_FILE"
   UPLOAD_EXIT_STATUS=$?
 else
-  echo 'todo'
+  echo "wget support hasn't been added for uploads yet"
+  exit 1
 fi
-
-echo "$UPLOAD_EXIT_STATUS"
-
-cat $UPLOAD_RESPONSE
 
 if [[ $UPLOAD_EXIT_STATUS -ne 0 ]]; then
   echo "blah"
   cat "$UPLOAD_COMMAND_OUTPUT_TMP_FILE"
   echo "output"
   cat "$UPLOAD_RESPONSE"
+else
+  echo ""
+  echo "✅ Uploaded!"
 fi
