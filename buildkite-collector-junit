@@ -15,6 +15,14 @@ Buildkite Test Analytics: JUnit Collector
 Version: $COLLECTOR_VERSION
 \033[0m"
 
+# Detect tty and error with usage message
+if [ -t 0 ]; then
+  echo "No JUnit stream found on STDIN"
+  echo ""
+  echo "Usage: cat junit.xml | TEST_ANALYTICS_TOKEN=xyz ./buildkite-collector-junit"
+  exit 1
+fi
+
 # Check to see if we've got jq installed already
 if command -v jq >/dev/null; then
   JQ_PATH=$(which jq)
@@ -176,6 +184,8 @@ echo ""
 
 if [[ $UPLOAD_EXIT_STATUS -ne 0 ]]; then
   echo "❌ Something went wrong..."
+  exit 1
 else
   echo "✅ Uploaded!"
+  exit 0
 fi

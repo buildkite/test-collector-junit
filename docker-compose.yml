@@ -1,0 +1,7 @@
+services:
+  collect:
+    build: .
+    volumes:
+      - .:/app
+    # Override the default entrypoint
+    entrypoint: []
