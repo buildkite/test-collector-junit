@@ -1,0 +1,6 @@
+steps:
+  - label: ":bash: Tests"
+    commands: "./test/bats/bin/bats test/"
+    plugins:
+      - docker-compose#v3.9.0:
+          run: "collect"
