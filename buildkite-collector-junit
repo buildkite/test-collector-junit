@@ -23,57 +23,6 @@ if [ -t 0 ]; then
   exit 1
 fi
 
-# Check to see if we've got jq installed already
-if command -v jq >/dev/null; then
-  JQ_PATH=$(which jq)
-
-  echo "Detected jq installed in \$PATH"
-else
-  # Figure out where we're going to put the binary after we download it
-  JQ_FOLDER="$HOME/.bk-collector-junit"
-  JQ_PATH="$JQ_FOLDER/jq"
-
-  # Have we already download jq? If we have, we can skip this whole bit.
-  if [[ ! -f "$JQ_PATH" ]]; then
-    # Figure out which binary to download
-    SYSTEM=$(uname -s | awk '{print tolower($0)}')
-    if [[ ($SYSTEM == *"mac os x"*) || ($SYSTEM == *darwin*) ]]; then
-      JQ_PLATFORM="osx-amd64"
-    else
-      MACHINE=$(uname -m | awk '{print tolower($0)}')
-      if [[ ($MACHINE == *"64"*) ]]; then
-        JQ_PLATFORM="linux64"
-      else
-        JQ_PLATFORM="linux32"
-      fi
-    fi
-
-    JQ_BINARY_DOWNLOAD_URL="https://github.com/stedolan/jq/releases/download/jq-1.6/jq-$JQ_PLATFORM"
-    JQ_DOWNLOAD_OUTPUT_TMP_FILE="/tmp/bk-collector-junit-jq-download-$$.txt"
-
-    # Make sure the folder actually exists
-    mkdir -p "$JQ_FOLDER"
-
-    # Download jq
-    if command -v wget >/dev/null; then
-      wget "$JQ_BINARY_DOWNLOAD_URL" -O "$JQ_PATH" 2> $JQ_DOWNLOAD_OUTPUT_TMP_FILE || JQ_DOWNLOAD_EXIT_STATUS=$?
-    else
-      curl -L -o "$JQ_PATH" "$JQ_BINARY_DOWNLOAD_URL" 2> $JQ_DOWNLOAD_OUTPUT_TMP_FILE || JQ_DOWNLOAD_EXIT_STATUS=$?
-    fi
-
-    if [[ $JQ_DOWNLOAD_EXIT_STATUS -ne 0 ]]; then
-      echo "Failed to download file: $JQ_BINARY_DOWNLOAD_URL"
-      cat $JQ_DOWNLOAD_OUTPUT_TMP_FILE
-      exit $JQ_DOWNLOAD_EXIT_STATUS
-    fi
-
-    # Ensure we can run the file
-    chmod +x $JQ_PATH
-  else
-    echo "Skipping jq download as it already exists at \"$JQ_PATH\""
-  fi
-fi
-
 # Based on the rules defined here:
 # https://github.com/buildkite/rspec-buildkite-analytics/blob/main/lib/buildkite/collector/ci.rb
 
@@ -120,72 +69,47 @@ fi
 JUNIT_DATA_PATH="/tmp/bk-collector-junit-data-$$.xml"
 cat ${1--} > $JUNIT_DATA_PATH
 
-JSON_PATH="/tmp/bk-collector-junit-upload-data-$$.json"
-
-$JQ_PATH --null-input \
-  --arg ci "$COLLECTOR_CI" \
-  --arg key "$COLLECTOR_KEY" \
-  --arg number "$COLLECTOR_NUMBER" \
-  --arg job_id "$COLLECTOR_JOB_ID" \
-  --arg branch "$COLLECTOR_BRANCH" \
-  --arg commit_sha "$COLLECTOR_COMMIT_SHA" \
-  --arg message "$COLLECTOR_MESSAGE" \
-  --arg url "$COLLECTOR_URL" \
-  --arg debug "$BUILDKITE_ANALYTICS_DEBUG_ENABLED" \
-  --arg collector_name "$COLLECTOR_NAME" \
-  --arg collector_version "$COLLECTOR_VERSION" \
-  --rawfile data "$JUNIT_DATA_PATH" \
-  '
-    {
-      "format": "junit",
-      "run_env": {
-        "CI": $ci,
-        "key": $key,
-        "number": $number,
-        "job_id": $job_id,
-        "branch": $branch,
-        "commit_sha": $commit_sha,
-        "message": $message,
-        "url": $url,
-        "debug": $debug,
-        "collector": $collector_name,
-        "version": $collector_version
-      },
-      "data": $data
-    }
-  ' > $JSON_PATH
-
-TEST_ANALYTICS_HTTP_URL="https://analytics-api.buildkite.com/v1/uploads"
+TEST_ANALYTICS_HTTP_URL="http://analytics-api.buildkite.localhost/v1/uploads"
 TEST_ANALYTICS_HTTP_AUTH='Authorization: Token token="'$TEST_ANALYTICS_TOKEN'";'
-
-UPLOAD_RESPONSE="/tmp/bk-collector-junit-upload-response-$$.txt"
-UPLOAD_COMMAND_OUTPUT_TMP_FILE="/tmp/bk-collector-junit-upload-cmd-output-$$.txt"
 
 echo ""
 echo "Uploading results to Buildkite Test Analytics. One moment please..."
 echo ""
 
 if command -v curl >/dev/null; then
-  curl --output "$UPLOAD_RESPONSE" \
+  set +e
+  curl \
+    --fail-with-body \
     --request POST \
     --url "$TEST_ANALYTICS_HTTP_URL" \
     --header "$TEST_ANALYTICS_HTTP_AUTH" \
-    --header 'Content-Type: application/json' \
-    --data "@$JSON_PATH"
+    -F "format=junit" \
+    -F "run_env[CI]=$COLLECTOR_CI" \
+    -F "run_env[key]=$COLLECTOR_KEY" \
+    -F "run_env[number]=$COLLECTOR_NUMBER" \
+    -F "run_env[job_id]=$COLLECTOR_JOB_ID" \
+    -F "run_env[branch]=$COLLECTOR_BRANCH" \
+    -F "run_env[commit_sha]=$COLLECTOR_COMMIT_SHA" \
+    -F "run_env[message]=$COLLECTOR_MESSAGE" \
+    -F "run_env[url]=$COLLECTOR_URL" \
+    -F "run_env[debug]=$BUILDKITE_ANALYTICS_DEBUG_ENABLED" \
+    -F "run_env[collector]=$COLLECTOR_NAME" \
+    -F "run_env[version]=$COLLECTOR_VERSION" \
+    -F "data=@$JUNIT_DATA_PATH"
   UPLOAD_EXIT_STATUS=$?
+  set -e
 else
   echo "wget support hasn't been added for uploads yet"
   exit 1
 fi
 
-echo ""
-cat "$UPLOAD_RESPONSE"
-echo ""
-
 if [[ $UPLOAD_EXIT_STATUS -ne 0 ]]; then
+  echo ""
   echo "❌ Something went wrong..."
   exit 1
 else
+  echo ""
+  echo ""
   echo "✅ Uploaded!"
   exit 0
 fi
