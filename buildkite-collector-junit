@@ -78,7 +78,7 @@ fi
 # https://github.com/buildkite/rspec-buildkite-analytics/blob/main/lib/buildkite/collector/ci.rb
 
 if [[ -n $BUILDKITE_BUILD_ID ]]; then
-  echo "Deteted Buildkite CI environment"
+  echo "Detected Buildkite CI environment"
 
   COLLECTOR_CI="buildkite"
   COLLECTOR_KEY=$BUILDKITE_BUILD_ID
@@ -89,7 +89,7 @@ if [[ -n $BUILDKITE_BUILD_ID ]]; then
   COLLECTOR_MESSAGE=$BUILDKITE_MESSAGE
   COLLECTOR_URL=$BUILDKITE_BUILD_URL
 elif [[ -n $GITHUB_RUN_NUMBER ]]; then
-  echo "Deteted GitHub Actions CI environment"
+  echo "Detected GitHub Actions CI environment"
 
   COLLECTOR_CI="github_actions"
   COLLECTOR_KEY="$GITHUB_ACTION-$GITHUB_RUN_NUMBER-$GITHUB_RUN_ATTEMPT"
@@ -98,7 +98,7 @@ elif [[ -n $GITHUB_RUN_NUMBER ]]; then
   COLLECTOR_COMMIT_SHA=$GITHUB_SHA
   COLLECTOR_URL="https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
 elif [[ -n $CIRCLE_BUILD_NUM ]]; then
-  echo "Deteted CircleCI environment"
+  echo "Detected CircleCI environment"
 
   COLLECTOR_CI="circleci"
   COLLECTOR_KEY="$CIRCLE_WORKFLOW_ID-$CIRCLE_BUILD_NUM"
@@ -107,7 +107,7 @@ elif [[ -n $CIRCLE_BUILD_NUM ]]; then
   COLLECTOR_COMMIT_SHA=$CIRCLE_SHA1
   COLLECTOR_URL=$CIRCLE_BUILD_URL
 elif [[ -n $CI ]]; then
-  echo "Deteted generic CI environment"
+  echo "Detected generic CI environment"
 
   COLLECTOR_CI="generic"
   COLLECTOR_KEY="$$"
