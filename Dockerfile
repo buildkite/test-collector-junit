@@ -5,6 +5,6 @@ RUN apk update && \
 
 WORKDIR /app
 
-ADD buildkite-collector-junit /app
+ADD test-collector /app
 
 ENTRYPOINT [ "/app/buildkite-collect-junit" ]
