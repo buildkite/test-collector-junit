@@ -1,6 +1,6 @@
-# Buildkite Collector for JUnit
+# Buildkite Collector for Curl
 
-A [Buildkite Test Analytics](https://buildkite.com/test-analytics) collector for JUnit files that uses `bash` and `curl` ✨
+A [Buildkite Test Analytics](https://buildkite.com/test-analytics) collector that uses `curl` to upload JSON and JUnit files ✨
 
 📦 **Supported CI systems:** Buildkite, GitHub Actions, CircleCI, and others via the `BUILDKITE_ANALYTICS_*` environment variables.
 
@@ -9,16 +9,33 @@ A [Buildkite Test Analytics](https://buildkite.com/test-analytics) collector for
 Using curl from within your build scripts:
 
 ```sh
+# For a JUnit file
 cat junit.xml | \
   BUILDKITE_ANALYTICS_TOKEN=xyz \
-  bash -c "`curl -sL https://raw.githubusercontent.com/buildkite/test-collector-junit/main/test-collector`"
+  bash -c "`curl -sL https://raw.githubusercontent.com/buildkite/test-collector-curl/main/test-collector`" \
+    --format junit
+    
+# For a Test Analytics JSON file
+cat test-results.json | \
+  BUILDKITE_ANALYTICS_TOKEN=xyz \
+  bash -c "`curl -sL https://raw.githubusercontent.com/buildkite/test-collector-curl/main/test-collector`" \
+    --format json
 ```
+
+See the [Importing JSON](https://buildkite.com/docs/test-analytics/importing-json) and [Importing JUnit XML](https://buildkite.com/docs/test-analytics/importing-junit-xml) documentation for more details.
 
 <!-- Using Docker:
 
 ```sh
+# For a JUnit file
 cat junit.xml | \
-  docker run -e BUILDKITE_ANALYTICS_TOKEN=xyz buildkite-test-collector
+  docker run -e BUILDKITE_ANALYTICS_TOKEN=xyz buildkite-test-collector \
+    --format junit
+
+# For a Test Analytics JSON file
+cat test-results.json | \
+  docker run -e BUILDKITE_ANALYTICS_TOKEN=xyz buildkite-test-collector \
+    --format json
 ```
 
 When using Docker, make sure to pass through the required environment variables for your CI system. For example, use the following command if you're running it within a Buildkite job:
@@ -33,8 +50,11 @@ cat junit.xml | \
     -e BUILDKITE_COMMIT \
     -e BUILDKITE_MESSAGE \
     -e BUILDKITE_BUILD_URL \
-    buildkite-test-collector
-``` -->
+    buildkite-test-collector \
+      --format junit
+```
+
+-->
 
 ## ⚒ Developing
 
@@ -54,7 +74,11 @@ Useful resources for developing collectors include the [Buildkite Test Analytics
 
 ## 👩‍💻 Contributing
 
+<<<<<<< HEAD
 Bug reports and pull requests are welcome on GitHub at https://github.com/buildkite/test-collector-junit
+=======
+Bug reports and pull requests are welcome on GitHub at https://github.com/buildkite/test-collector-curl
+>>>>>>> bfb9c7f (Update README.md)
 
 ## 📜 License
 
