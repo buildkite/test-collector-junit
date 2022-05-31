@@ -1,0 +1,115 @@
+#!/bin/bash
+
+set -e
+
+BUILDKITE_ANALYTICS_NAME="collector-junit"
+BUILDKITE_ANALYTICS_VERSION="0.1"
+
+echo -e "\033[33m     _ _   _       _ _      ____      _ _           _
+    | | | | |_ __ (_| |_   / ___|___ | | | ___  ___| |_ ___  _ __
+ _  | | | | | '_ \| | __| | |   / _ \| | |/ _ \/ __| __/ _ \| '__|
+| |_| | |_| | | | | | |_  | |__| (_) | | |  __| (__| || (_) | |
+ \___/ \___/|_| |_|_|\__|  \____\___/|_|_|\___|\___|\__\___/|_|
+
+Buildkite Test Analytics: JUnit Collector
+Version: $BUILDKITE_ANALYTICS_VERSION
+\033[0m"
+
+# Detect tty and error with usage message
+if [ -t 0 ]; then
+  echo "No JUnit stream found on STDIN"
+  echo ""
+  echo "Usage: cat junit.xml | BUILDKITE_ANALYTICS_TOKEN=xyz ./test-collector"
+  exit 1
+fi
+
+# Based on the rules defined here:
+# https://github.com/buildkite/rspec-buildkite-analytics/blob/main/lib/buildkite/collector/ci.rb
+
+if [[ -n $BUILDKITE_BUILD_ID ]]; then
+  echo "Detected Buildkite CI environment"
+
+  BUILDKITE_ANALYTICS_CI="buildkite"
+  BUILDKITE_ANALYTICS_KEY=$BUILDKITE_BUILD_ID
+  BUILDKITE_ANALYTICS_NUMBER=$BUILDKITE_BUILD_NUMBER
+  BUILDKITE_ANALYTICS_JOB_ID=$BUILDKITE_JOB_ID
+  BUILDKITE_ANALYTICS_BRANCH=$BUILDKITE_BRANCH
+  BUILDKITE_ANALYTICS_COMMIT_SHA=$BUILDKITE_COMMIT
+  BUILDKITE_ANALYTICS_MESSAGE=$BUILDKITE_MESSAGE
+  BUILDKITE_ANALYTICS_URL=$BUILDKITE_BUILD_URL
+elif [[ -n $GITHUB_RUN_NUMBER ]]; then
+  echo "Detected GitHub Actions CI environment"
+
+  BUILDKITE_ANALYTICS_CI="github_actions"
+  BUILDKITE_ANALYTICS_KEY="$GITHUB_ACTION-$GITHUB_RUN_NUMBER-$GITHUB_RUN_ATTEMPT"
+  BUILDKITE_ANALYTICS_NUMBER=$GITHUB_RUN_NUMBER
+  BUILDKITE_ANALYTICS_BRANCH=$GITHUB_REF
+  BUILDKITE_ANALYTICS_COMMIT_SHA=$GITHUB_SHA
+  BUILDKITE_ANALYTICS_URL="https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+elif [[ -n $CIRCLE_BUILD_NUM ]]; then
+  echo "Detected CircleCI environment"
+
+  BUILDKITE_ANALYTICS_CI="circleci"
+  BUILDKITE_ANALYTICS_KEY="$CIRCLE_WORKFLOW_ID-$CIRCLE_BUILD_NUM"
+  BUILDKITE_ANALYTICS_NUMBER=$CIRCLE_BUILD_NUM
+  BUILDKITE_ANALYTICS_BRANCH=$CIRCLE_BRANCH
+  BUILDKITE_ANALYTICS_COMMIT_SHA=$CIRCLE_SHA1
+  BUILDKITE_ANALYTICS_URL=$CIRCLE_BUILD_URL
+elif [[ -n $CI ]]; then
+  echo "Detected generic CI environment"
+
+  BUILDKITE_ANALYTICS_CI="generic"
+  BUILDKITE_ANALYTICS_KEY="$$"
+else
+  echo "No CI environment detected"
+
+  BUILDKITE_ANALYTICS_KEY="$$"
+fi
+
+JUNIT_DATA_PATH="/tmp/bk-collector-junit-data-$$.xml"
+cat ${1--} > $JUNIT_DATA_PATH
+
+TEST_ANALYTICS_HTTP_URL="https://analytics-api.buildkite.com/v1/uploads"
+TEST_ANALYTICS_HTTP_AUTH='Authorization: Token token="'$BUILDKITE_ANALYTICS_TOKEN'";'
+
+echo ""
+echo "Uploading results to Buildkite Test Analytics. One moment please..."
+echo ""
+
+if command -v curl >/dev/null; then
+  set +e
+  curl \
+    --fail-with-body \
+    --request POST \
+    --url "$TEST_ANALYTICS_HTTP_URL" \
+    --header "$TEST_ANALYTICS_HTTP_AUTH" \
+    -F "format=junit" \
+    -F "run_env[CI]=$BUILDKITE_ANALYTICS_CI" \
+    -F "run_env[key]=$BUILDKITE_ANALYTICS_KEY" \
+    -F "run_env[number]=$BUILDKITE_ANALYTICS_NUMBER" \
+    -F "run_env[job_id]=$BUILDKITE_ANALYTICS_JOB_ID" \
+    -F "run_env[branch]=$BUILDKITE_ANALYTICS_BRANCH" \
+    -F "run_env[commit_sha]=$BUILDKITE_ANALYTICS_COMMIT_SHA" \
+    -F "run_env[message]=$BUILDKITE_ANALYTICS_MESSAGE" \
+    -F "run_env[url]=$BUILDKITE_ANALYTICS_URL" \
+    -F "run_env[debug]=$BUILDKITE_ANALYTICS_DEBUG_ENABLED" \
+    -F "run_env[collector]=$BUILDKITE_ANALYTICS_NAME" \
+    -F "run_env[version]=$BUILDKITE_ANALYTICS_VERSION" \
+    -F "data=@$JUNIT_DATA_PATH"
+  UPLOAD_EXIT_STATUS=$?
+  set -e
+else
+  echo "wget support hasn't been added for uploads yet"
+  exit 1
+fi
+
+if [[ $UPLOAD_EXIT_STATUS -ne 0 ]]; then
+  echo ""
+  echo "❌ Something went wrong..."
+  exit 1
+else
+  echo ""
+  echo ""
+  echo "✅ Uploaded!"
+  exit 0
+fi

@@ -1,24 +1,24 @@
 # Buildkite Collector for JUnit
 
-A [Buildkite Test Analytics](https://buildkite.com/test-analytics) collector for JUnit files ✨
+A [Buildkite Test Analytics](https://buildkite.com/test-analytics) collector for JUnit files that uses `bash` and `curl` ✨
 
 📦 **Supported CI systems:** Buildkite, GitHub Actions, CircleCI, and others via the `BUILDKITE_ANALYTICS_*` environment variables.
 
 ## 👉 Usage
 
-Using curl:
+Using curl from within your build scripts:
 
 ```sh
 cat junit.xml | \
-  TEST_ANALYTICS_TOKEN=xyz \
-  bash -c "`curl -sL https://raw.githubusercontent.com/buildkite/collector-junit/main/buildkite-collector-junit`"
+  BUILDKITE_ANALYTICS_TOKEN=xyz \
+  bash -c "`curl -sL https://raw.githubusercontent.com/buildkite/test-collector-junit/main/test-collector`"
 ```
 
-Using Docker:
+<!-- Using Docker:
 
 ```sh
 cat junit.xml | \
-  docker run -e TEST_ANALYTICS_TOKEN=xyz buildkite-collector-junit
+  docker run -e BUILDKITE_ANALYTICS_TOKEN=xyz buildkite-test-collector
 ```
 
 When using Docker, make sure to pass through the required environment variables for your CI system. For example, use the following command if you're running it within a Buildkite job:
@@ -26,15 +26,15 @@ When using Docker, make sure to pass through the required environment variables 
 ```sh
 cat junit.xml | \
   docker run \
-    -e TEST_ANALYTICS_TOKEN \
+    -e BUILDKITE_ANALYTICS_TOKEN \
     -e BUILDKITE_BUILD_NUMBER \
     -e BUILDKITE_JOB_ID \
     -e BUILDKITE_BRANCH \
     -e BUILDKITE_COMMIT \
     -e BUILDKITE_MESSAGE \
     -e BUILDKITE_BUILD_URL \
-    buildkite-collector-junit
-```
+    buildkite-test-collector
+``` -->
 
 ## ⚒ Developing
 
@@ -54,7 +54,7 @@ Useful resources for developing collectors include the [Buildkite Test Analytics
 
 ## 👩‍💻 Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/buildkite/collector-junit
+Bug reports and pull requests are welcome on GitHub at https://github.com/buildkite/test-collector-junit
 
 ## 📜 License
 
