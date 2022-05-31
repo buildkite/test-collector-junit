@@ -1,4 +1,4 @@
-# Buildkite Collector for Curl
+# Buildkite Collector for curl
 
 A [Buildkite Test Analytics](https://buildkite.com/test-analytics) collector that uses `curl` to upload JSON and JUnit files ✨
 
@@ -74,11 +74,7 @@ Useful resources for developing collectors include the [Buildkite Test Analytics
 
 ## 👩‍💻 Contributing
 
-<<<<<<< HEAD
-Bug reports and pull requests are welcome on GitHub at https://github.com/buildkite/test-collector-junit
-=======
 Bug reports and pull requests are welcome on GitHub at https://github.com/buildkite/test-collector-curl
->>>>>>> bfb9c7f (Update README.md)
 
 ## 📜 License
 

@@ -2,7 +2,7 @@
 
 set -e
 
-BUILDKITE_ANALYTICS_NAME="collector-junit"
+BUILDKITE_ANALYTICS_NAME="test-collector-curl"
 BUILDKITE_ANALYTICS_VERSION="0.1"
 
 echo -e "\033[33m     _ _   _       _ _      ____      _ _           _
@@ -11,7 +11,7 @@ echo -e "\033[33m     _ _   _       _ _      ____      _ _           _
 | |_| | |_| | | | | | |_  | |__| (_) | | |  __| (__| || (_) | |
  \___/ \___/|_| |_|_|\__|  \____\___/|_|_|\___|\___|\__\___/|_|
 
-Buildkite Test Analytics: JUnit Collector
+Buildkite Test Analytics: curl Collector
 Version: $BUILDKITE_ANALYTICS_VERSION
 \033[0m"
 
