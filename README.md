@@ -11,7 +11,7 @@ Using curl from within your build scripts:
 ```sh
 cat junit.xml | \
   BUILDKITE_ANALYTICS_TOKEN=xyz \
-  bash -c "`curl -sL https://raw.githubusercontent.com/buildkite/test-collector-junit/main/test-collector`"
+  bash -c "`curl -sL https://raw.githubusercontent.com/buildkite/test-collector-junit/v0.0.1/test-collector`"
 ```
 
 <!-- Using Docker:
