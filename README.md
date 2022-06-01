@@ -1,4 +1,4 @@
-# Buildkite Collector for JUnit
+# Buildkite Collector for JUnit (Alpha)
 
 A [Buildkite Test Analytics](https://buildkite.com/test-analytics) collector for JUnit files that uses `bash` and `curl` ✨
 
