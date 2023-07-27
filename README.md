@@ -1,3 +1,7 @@
+# DEPRECATED
+
+Buildkite now has [inbuilt support for JUnit](https://buildkite.com/docs/test-analytics/importing-junit-xml).
+
 # Buildkite Collector for JUnit (Alpha)
 
 A [Buildkite Test Analytics](https://buildkite.com/test-analytics) collector for JUnit files that uses `bash` and `curl` ✨
